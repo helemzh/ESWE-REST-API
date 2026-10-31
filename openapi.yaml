@@ -1,0 +1,67 @@
+openapi: 3.0.3
+info:
+  title: Movie Theater Seat Selection API
+  version: 1.0.0
+  description: >
+    Displays the seat map for a selected showtime,
+    hold selected seats while the customer checks out, and
+    release those seats if the customer cancels. While a seat is held,
+    it cannot be selected by other customers.
+
+paths:
+  /showtimes/{showtimeId}/seats:
+    get:
+      summary: Get the seat map and availability for a showtime
+      parameters:
+        - name: showtimeId
+          in: path
+          required: true
+          description: ID of the showtime.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Seat map returned (seatId, row, number, status, prices).
+        '404':
+          description: Showtime not found.
+
+  /seat-holds:
+    post:
+      summary: Hold selected seats for a showtime
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [showtimeId, seatIds]
+              properties:
+                showtimeId:
+                  type: string
+                seatIds:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: Seats held. Returns holdId, total price, and expiresAt.
+        '409':
+          description: One or more seats are already held or purchased.
+
+  /seat-holds/{holdId}:
+    delete:
+      summary: Cancel a seat hold and release the seats
+      parameters:
+        - name: holdId
+          in: path
+          required: true
+          description: ID of the seat hold.
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Hold cancelled and seats are released.
+        '404':
+          description: Hold not found.
+        '410':
+          description: Hold already expired.
